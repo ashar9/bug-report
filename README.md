@@ -1,5 +1,4 @@
 # bug-report
-### _Your Name <your.name@example.com>_
 
 
 Code generated as a side-effect of defmacro expansion is not consistent if the project is loaded again from cache (e.g. SBCL .fasl) by the compiler. If .fasl file is deleted, then works OK.
