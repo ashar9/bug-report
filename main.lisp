@@ -26,5 +26,4 @@
 
 (split-processing "HELO") 
 (split-processing2 "WORD") 
-(split-processing2 "X") 
 
