@@ -3,16 +3,25 @@
 
 Code generated as a side-effect of defmacro expansion is not consistent if the project is loaded again from cache (e.g. SBCL .fasl) by the compiler. If .fasl file is deleted, then works OK.
 
-I know that the Lisp standard does not guarantee when a macro is expanded, but I assume it guarantees that however it expands, it will do the right thing (to use the quote from your book).
-Just wanted your opinion, if the standard allows different behaviour by implementations based on if they are using pre-compiled cache vs fresh compilation - before filing a bug report with SBCL (using version 2.1.0 on Centos 7)
+I know that the Lisp standard does not guarantee when a macro is expanded, but I assume it guarantees that however it expands, it will do the right thing.
 
-Sample code is at https://github.com/ashar9/bug-report
+Bug reproduction code is at https://github.com/ashar9/bug-report  (structured as a quicklisp project in local-projects directory)
 
-My original code used eval, but also tried the compile function, but that has the same effect.
 
-I know that some purists are going to object based on "referential transparency" or something, but this approach is just too powerful to not use just because of some unwarranted ideals.
+Both EVAL and COMPILE have the same error with cache/fasl (both versions shown below)
 
-Get undefined function CALLBACK--HELO  etc when loaded from fasl cache by SBCL
+How it is Run:
+sbcl --eval '(quicklisp:quickload :bug-report)'
+
+ERROR: 
+1. Works OK when run the first time
+2. Get undefined function CALLBACK--HELO subsequenty (i.e. loaded from fasl cache by SBCL)
+
+WORKAROUND:
+ Deleting the fasl file (or newer source timestamp) makes it work OK again
+	rm  ~/.cache/common-lisp/sbcl-2.1.0-linux-x64/home/ec2-user/quicklisp/local-projects/bug-report/main.fasl
+
+
 
 (in-package #:bug-report)
 
@@ -42,41 +51,4 @@ Get undefined function CALLBACK--HELO  etc when loaded from fasl cache by SBCL
 
 
 Motivation: macro split-processing (just a straw man example) is intended to be used in web pages or inner loops where (defun ...) of callbacks (defun not in toplevel) should not be called/compiled again and again (and hence created at compile time once). 
-
-ERROR: 
-undefined function CALLBACK--HELO  etc when loaded from cache by SBCL
-
-Workaround:  delete the .fasl file in  ~/.cache/common-lisp/sbcl-2.1.0-linux-x64/home/ec2-user/quicklisp/local-projects/bug-report/main.fasl
-
-Other workaround: Check at runtime if fboundp for the generated function, and compile once at runtime
-(I used the following in my real application):
-
-
-```lisp
-;ajax-gen-code is the code as `(lambda() (defun ,url-callback() .....))
-
-;...end of defmacro
-(let ((fn-gen-ajax (gensym )))
-                (compile fn-gen-ajax ajax-gen-code)  
-                (funcall fn-gen-ajax))  ; run defun once   macro expansion time   
-              `(unless *productionp*  ; for production always clear cache for project bfore loading
-                 ; FOR SBCL reading evaled defun compilation from cache/fasl is not found
-                 ; for production, clear cache before building the project using datatable
-                 ; otherwise, check at the runtime if the function is not defined
-
-                 (format t "We are in the webpage function~%")
-                 (let ((ajax-handler-fn ',(handler-url2function url)))
-                   (if (fboundp ajax-handler-fn)            ; runtime 
-                     (format t "  DEFINED!!  ~A  __DEFINED___ @______@~%" ajax-handler-fn)
-                     (progn
-                     (format t "   MISSING  ~A  __MISSING |^^^^^^^^^^^| compile-now ~%" ajax-handler-fn)
-                       ;(format t "Here is a recipe: ~A~%" ,ajax-gen-code)
-                       (funcall ,ajax-gen-code)  ; compile code once at runtime
-
-                       )
-                     )))
-
-````
-
-
 

@@ -2,6 +2,7 @@
 (in-package #:bug-report)
 
 
+(eval-when (:compile-toplevel :execute :load-toplevel)
 
 (defmacro split-processing (n)
   (let ((name (intern (format nil "CALLBACK--~A" n)))) 
@@ -27,3 +28,4 @@
 (split-processing "HELO") 
 (split-processing2 "WORD") 
 
+)
