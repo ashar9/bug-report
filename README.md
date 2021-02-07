@@ -19,6 +19,7 @@ Get undefined function CALLBACK--HELO  etc when loaded from fasl cache by SBCL
 
 ; to focus on the issue, the code does not show the threads, callback mechanisms, etc
 
+```lisp
 (defmacro split-processing (n) ; EVAL Version
   (let ((name (intern (format nil "CALLBACK--~A" n))))
     (eval `(defun ,name ()
@@ -38,6 +39,7 @@ Get undefined function CALLBACK--HELO  etc when loaded from fasl cache by SBCL
 
 (split-processing "HELO")
 (split-processing2 "WORD")
+````
 
 
 Motivation: macro split-processing (just a straw man example) is intended to be used in web pages or inner loops where (defun ...) of callbacks (defun not in toplevel) should not be called/compiled again and again (and hence created at compile time once). 
@@ -51,9 +53,10 @@ Other workaround: Check at runtime if fboundp for the generated function, and co
 (I used the following in my real application):
 
 
+```lisp
 ;ajax-gen-code is the code as `(lambda() (defun ,url-callback() .....))
 
-...end of defmacro
+;...end of defmacro
 (let ((fn-gen-ajax (gensym )))
                 (compile fn-gen-ajax ajax-gen-code)  
                 (funcall fn-gen-ajax))  ; run defun once   macro expansion time   
@@ -74,6 +77,7 @@ Other workaround: Check at runtime if fboundp for the generated function, and co
                        )
                      )))
 
+````
 
 
 
