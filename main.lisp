@@ -28,20 +28,3 @@
 (split-processing2 "WORD") 
 (split-processing2 "X") 
 
-;(CALLBACK--x)
-
-(defun symb (&rest args)
-  (values (intern (apply #'mkstr args))))
-
-
-(defun mkstr (&rest args)
-  (with-output-to-string (s)
-    (dolist (a args) (princ a s))))
-
-(apply #'mkstr (list 'a 'b 10 :heloup "WHAT"))
-(symb 'a 'b 10 :heloup "WHAT")
-(symb '@ "hello" "dear")
-
-
-
-
